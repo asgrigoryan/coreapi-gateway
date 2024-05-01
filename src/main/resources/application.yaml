@@ -1,0 +1,13 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: coreapi-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: coreapi-auth
+          uri: http://localhost:8081/
+          Predicates:
+            - Path=/api/v1/auth/*
+            - Method=POST
