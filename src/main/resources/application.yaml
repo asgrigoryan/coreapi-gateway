@@ -9,5 +9,5 @@ spring:
         - id: coreapi-auth
           uri: http://localhost:8081/
           Predicates:
-            - Path=/api/v1/**/**
+            - Path=/api/v1/auth/**
             - Method=POST
