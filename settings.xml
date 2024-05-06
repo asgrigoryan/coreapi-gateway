@@ -1,0 +1,29 @@
+<settings>
+    <mirrors>
+        <mirror>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <mirrorOf>*,!snapshots,!maven-central</mirrorOf>
+        </mirror>
+    </mirrors>
+    <profiles>
+        <profile>
+            <id>download-dependencies</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>central</id>
+                    <url>https://repo.maven.apache.org/maven2</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>false</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+</settings>
