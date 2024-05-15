@@ -1,5 +1,6 @@
 server:
   port: 8085
+
 spring:
   application:
     name: coreapi-gateway
@@ -11,3 +12,7 @@ spring:
           predicates:
             - Path=/auth/api/v1/auth/**
             - Method=POST
+          filters:
+            - name: LoggingGlobalFilter
+              args:
+                order: -1 # Set the order of the filter
