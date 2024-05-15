@@ -13,6 +13,6 @@ spring:
             - Path=/auth/api/v1/auth/**
             - Method=POST
           filters:
-            - name: LoggingGlobalFilter
+            - name: LoggingWithConfig
               args:
-                order: -1 # Set the order of the filter
+                param: auth
