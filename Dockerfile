@@ -1,7 +1,6 @@
-FROM azul/zulu-openjdk:17-latest
-
-COPY ./target/coreapi-gateway-0.0.1-SNAPSHOT.jar /
-
-EXPOSE 8085
-
-ENTRYPOINT java -jar coreapi-gateway-0.0.1-SNAPSHOT.jar
+FROM openjdk:17-jdk as builder
+WORKDIR application
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} application.jar
+RUN java -Djarmode=layertools -jar gateway-app.jar extract
+ENTRYPOINT ["java","org.springframework.boot.loader.launch.JarLauncher"]
