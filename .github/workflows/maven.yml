@@ -40,6 +40,10 @@ jobs:
       with:
         name: jacoco-report
         path: target/site/jacoco
+    - name: Prepare release
+      run: mvn release:prepare -B
+    - name: Perform release
+      run: mvn release:perform -B  
     - name: Set up versioning
       id: vars
       run: |
