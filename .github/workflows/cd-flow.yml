@@ -75,7 +75,3 @@ jobs:
           tags: |
             ${{ steps.append_version.outputs.docker_tag }}
             ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
-          load: false
-          no-cache: false
-          pull: false
-          github-token: ${{ secrets.DOCKER_PAT }}
