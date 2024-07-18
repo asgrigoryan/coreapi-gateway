@@ -7,7 +7,9 @@
 # documentation.
 
 name: Java CI/CD with Maven
-
+env:
+  JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+  JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
 on:
   push:
     branches: [ "master" ]
@@ -77,6 +79,8 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ steps.append_version.outputs.docker_tag }}, ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
+        tags: |
+              ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.VERSION }}
+              ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
 
   
