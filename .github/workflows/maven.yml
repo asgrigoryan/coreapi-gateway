@@ -44,7 +44,7 @@ jobs:
       id: vars
       run: |
         GIT_SHA=$(git rev-parse --short HEAD)
-        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        VERSION=$(mvn versions:set -DnewVersion=\${{ github.run_number }} -DgenerateBackupPoms=false)
         echo "GIT_SHA=${GIT_SHA}" >> $GITHUB_ENV
         echo "VERSION=${VERSION}" >> $GITHUB_ENV    
     - name: Log in to Docker Hub
