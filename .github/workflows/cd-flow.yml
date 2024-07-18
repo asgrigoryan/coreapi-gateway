@@ -69,4 +69,6 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ steps.append_version.outputs.docker_tag }}, ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
+        tags: |
+            ${{ steps.append_version.outputs.docker_tag }}
+            ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
