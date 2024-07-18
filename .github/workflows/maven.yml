@@ -6,7 +6,10 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java CI/CD with Maven
+name: Java CI/CD with Maven 
+env:
+      JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+      JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
 on:
   push:
     branches: [ "master" ]
@@ -77,15 +80,12 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.VERSION }}
+            ${{ steps.append_version.outputs.docker_tag }}
             ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
           load: false
           no-cache: false
           pull: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      env:
-        JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-        JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
 
 
   
