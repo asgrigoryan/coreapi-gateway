@@ -46,7 +46,7 @@ jobs:
         git push origin HEAD:master
         echo "::set-output name=next_version::$next_version"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GATEWAY_TOKEN }}
 
     - name: Verify updated version in pom.xml
       run: |
