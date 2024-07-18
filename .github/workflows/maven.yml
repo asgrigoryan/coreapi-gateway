@@ -60,4 +60,3 @@ jobs:
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
           ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.VERSION }}
-          ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.GIT_SHA }}
