@@ -23,20 +23,28 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: maven 
+        cache: maven
 
     - name: Get current version from pom.xml
       id: get_version
       run: |
         echo "Current version:"
         mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+
     - name: Increment version in pom.xml
       id: increment_version
       run: |
         current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
         next_version=$(echo $current_version | awk -F'[.-]' '{print $1"."$2"."$3+1}')
+        echo "Current version: $current_version"
+        echo "Next version: $next_version"
         mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
         echo "::set-output name=next_version::$next_version"
+
+    - name: Verify updated version in pom.xml
+      run: |
+        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
@@ -66,7 +74,7 @@ jobs:
       run: |
         echo "Setting Docker image tag with next version: ${{ steps.increment_version.outputs.next_version }}"
         echo "::set-output name=docker_tag::${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ steps.increment_version.outputs.next_version }}"
-    
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
