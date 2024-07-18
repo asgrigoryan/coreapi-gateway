@@ -39,7 +39,10 @@ jobs:
         echo "Current version: $current_version"
         echo "Next version: $next_version"
         mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
+        # Output the contents of pom.xml after version incrementation
+        cat pom.xml
         echo "::set-output name=next_version::$next_version"
+
 
     - name: Verify updated version in pom.xml
       run: |
