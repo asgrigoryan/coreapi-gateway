@@ -15,7 +15,7 @@ jobs:
     
     steps:
       - name: Verify Maven build
-        uses: ./verify.yml
+        uses: ./cd-flow.yml
 
       - name: Set Docker image tag with Maven version
         id: set_docker_tag
