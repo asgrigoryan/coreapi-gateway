@@ -1,57 +1,57 @@
-# name: Java CI/CD with Maven
-# env:
-#   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-#   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+name: Java CI/CD with Maven
+env:
+  JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+  JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
 
-# on:
-#   push:
-#     branches: [ "master" ]
-#   pull_request:
-#     branches: [ "master" ]
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
 
-# jobs:
-#   build:
+jobs:
+  build:
 
-#     runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-#     steps:
-#     - uses: actions/checkout@v4
+    steps:
+    - uses: actions/checkout@v4
 
-#     - name: Set up JDK 17
-#       uses: actions/setup-java@v3
-#       with:
-#         java-version: '17'
-#         distribution: 'temurin'
-#         cache: maven 
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven 
 
-#     - name: Get current version from pom.xml
-#       id: get_version
-#       run: |
-#         echo "Current version:"
-#         mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+    - name: Get current version from pom.xml
+      id: get_version
+      run: |
+        echo "Current version:"
+        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
 
-#     - name: Increment version in pom.xml
-#       id: increment_version
-#       run: |
-#         current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-#         next_version=$(echo $current_version | awk -F'[.-]' '{print $1"."$2"."$3+1}')
-#         mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
-#         echo "::set-output name=next_version::$next_version"
+    - name: Increment version in pom.xml
+      id: increment_version
+      run: |
+        current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        next_version=$(echo $current_version | awk -F'[.-]' '{print $1"."$2"."$3+1}')
+        mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
+        echo "::set-output name=next_version::$next_version"
 
-#     - name: Build with Maven
-#       run: mvn -B package --file pom.xml
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
 
-#     - name: Run spotless check
-#       run: mvn spotless:check
+    - name: Run spotless check
+      run: mvn spotless:check
 
-#     - name: Run SpotBugs
-#       run: mvn spotbugs:check
+    - name: Run SpotBugs
+      run: mvn spotbugs:check
 
-#     - name: Run tests with Maven and generate JaCoCo report
-#       run: mvn test jacoco:report
+    - name: Run tests with Maven and generate JaCoCo report
+      run: mvn test jacoco:report
 
-#     - name: Upload JaCoCo report
-#       uses: actions/upload-artifact@v2
-#       with:
-#         name: jacoco-report
-#         path: target/site/jacoco
+    - name: Upload JaCoCo report
+      uses: actions/upload-artifact@v2
+      with:
+        name: jacoco-report
+        path: target/site/jacoco
