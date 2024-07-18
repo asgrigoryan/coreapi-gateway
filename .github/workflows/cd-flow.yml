@@ -15,7 +15,7 @@ jobs:
     
     steps:
       - name: Verify Maven build
-        uses: .github/workflows/ci-flow.yml@v1.0.0
+        uses: ci-flow.yml@v1.0.0
 
       - name: Set Docker image tag with Maven version
         id: set_docker_tag
