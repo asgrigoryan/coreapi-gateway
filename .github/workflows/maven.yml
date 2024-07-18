@@ -1,15 +1,9 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+name: Java CI/CD with Maven
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Java CI/CD with Maven 
 env:
-      JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
-      JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+  JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+  JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+
 on:
   push:
     branches: [ "master" ]
@@ -30,6 +24,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven 
+
     - name: Get current version from pom.xml
       id: get_version
       run: |
@@ -67,25 +62,22 @@ jobs:
       with:
         username: ${{secrets.DOCKER_USERNAME}}
         password: ${{secrets.DOCKER_PASSWORD}}
-   
+
     - name: Append version to Docker image tag
       id: append_version
       run: |
-        docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ steps.get_version.outputs.next_version }}
-        echo "::set-output name=docker_tag::$docker_tag"
+        echo "Setting Docker image tag with next version: ${{ steps.increment_version.outputs.next_version }}"
+        echo "::set-output name=docker_tag::${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ steps.increment_version.outputs.next_version }}"
     
     - name: Build and push Docker image
       uses: docker/build-push-action@v2
       with:
-          context: .
-          push: true
-          tags: |
-            ${{ steps.append_version.outputs.docker_tag }}
-            ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
-          load: false
-          no-cache: false
-          pull: false
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-
-  
+        context: .
+        push: true
+        tags: |
+          ${{ steps.append_version.outputs.docker_tag }}
+          ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
+        load: false
+        no-cache: false
+        pull: false
+        github-token: ${{ secrets.GITHUB_TOKEN }}
