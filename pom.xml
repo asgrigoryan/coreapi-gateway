@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.core</groupId>
 	<artifactId>coreapi-gateway</artifactId>
-	<version>0.0.11</version>
+	<version>0.0.12</version>
 	<name>coreapi-gateway</name>
 	<description>Spring Cloud Gateway </description>
 	<properties>
