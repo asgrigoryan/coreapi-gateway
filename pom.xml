@@ -143,5 +143,11 @@
 			</plugin>
 		</plugins>
 	</build>
+	<scm>
+    		<connection>scm:git:https://github.com/asgrigoryan/coreapi-gateway.git</connection>
+    		<developerConnection>scm:git:git@github.com:asgrigoryan/coreapi-gateway.git</developerConnection>
+    		<url>https://github.com/asgrigoryan/coreapi-gateway</url>
+    		<tag>HEAD</tag>
+  	</scm>
 
 </project>
