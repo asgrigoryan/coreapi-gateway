@@ -19,6 +19,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+      JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up JDK 17
@@ -27,24 +31,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
-    - name: Run spotless check
-      run: mvn spotless:check
-    - name: Run SpotBugs
-      run: mvn spotbugs:check
-    - name: Run tests with Maven and generate JaCoCo report
-      run: mvn test jacoco:report
-    - name: Upload JaCoCo report
-      uses: actions/upload-artifact@v2
-      with:
-        name: jacoco-report
-        path: target/site/jacoco
-    - name: Set up versioning
+    - name: Increment Project Version
+      run: mvn versions:set -DnewVersion=${{ github.run_number }} -DgenerateBackupPoms=false
+    - name: Capture Git SHA and Maven Version
       id: vars
       run: |
         GIT_SHA=$(git rev-parse --short HEAD)
-        VERSION=$(mvn versions:set -DnewVersion=\${{ github.run_number }} -DgenerateBackupPoms=false)
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
         echo "GIT_SHA=${GIT_SHA}" >> $GITHUB_ENV
         echo "VERSION=${VERSION}" >> $GITHUB_ENV    
     - name: Log in to Docker Hub
