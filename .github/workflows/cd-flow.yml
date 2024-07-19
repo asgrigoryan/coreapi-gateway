@@ -168,7 +168,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: gateway-app
-          path: target/
+          path: application/target
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
