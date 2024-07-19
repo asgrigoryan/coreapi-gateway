@@ -162,6 +162,7 @@ jobs:
         run: |
           echo "Setting Docker image tag with next version: ${{ env.next_version }}"
           echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
+  
   build_and_push_docker:
     runs-on: ubuntu-latest
     needs: set_docker_tag
