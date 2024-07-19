@@ -95,7 +95,13 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Set Docker image tag
-        run: echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
+        id: set_docker_tag
+        run: |
+          if [ -z "${{ env.next_version }}" ]; then
+            echo "Error: next_version is not set"
+            exit 1
+          fi
+          echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
 
       - name: Download JAR file
         uses: actions/download-artifact@v2
