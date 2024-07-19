@@ -54,8 +54,20 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>com.nnaltakyan.api</groupId>
+				<artifactId>coreapi-common-lib</artifactId>
+				<version>0.0.5</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	<repositories>
+		<repository>
+			<id>github</id>
+			<name>GitHub nareknaltakyan1 Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/nareknaltakyan1/coreapi-common-lib</url>
+		</repository>
+	</repositories>
 	<build>
 		<plugins>
 			<plugin>
