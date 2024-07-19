@@ -1,57 +1,144 @@
-name: Java CI with Maven
+name: Java CI/CD with Maven
+
 env:
   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9/x64
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
-  build:
-
+  checkout:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven 
+  setup_jdk:
+    runs-on: ubuntu-latest
+    needs: checkout
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
 
-    - name: Get current version from pom.xml
-      id: get_version
-      run: |
-        echo "Current version:"
-        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+  get_version:
+    runs-on: ubuntu-latest
+    needs: setup_jdk
+    steps:
+      - name: Get current version from pom.xml
+        id: get_version
+        run: |
+          echo "Current version:"
+          mvn help:evaluate -Dexpression=project.version -q -DforceStdout
 
-    - name: Increment version in pom.xml
-      id: increment_version
-      run: |
-        current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-        next_version=$(echo $current_version | awk -F'[.-]' '{print $1"."$2"."$3+1}')
-        mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
-        echo "::set-output name=next_version::$next_version"
+  increment_version:
+    runs-on: ubuntu-latest
+    needs: get_version
+    steps:
+      - name: Increment version in pom.xml
+        id: increment_version
+        run: |
+          current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          next_version=$(echo $current_version | awk -F'[.-]' '{print $1"."$2"."$3+1}')
+          echo "Current version: $current_version"
+          echo "Next version: $next_version"
+          mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
+          git config --global user.email ${{secrets.GIT_USERNAME}}
+          git config --global user.name ${{secrets.GIT_EMAIL}}
+          git add pom.xml
+          git commit -m "Bump version to $next_version"
+          echo "next_version=$next_version" >> $GITHUB_ENV
 
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+  push_version_update:
+    runs-on: ubuntu-latest
+    needs: increment_version
+    steps:
+      - name: Push version update
+        run: git push origin HEAD:master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Run spotless check
-      run: mvn spotless:check
+  verify_version:
+    runs-on: ubuntu-latest
+    needs: push_version_update
+    steps:
+      - name: Verify updated version in pom.xml
+        run: |
+          mvn help:evaluate -Dexpression=project.version -q -DforceStdout
 
-    - name: Run SpotBugs
-      run: mvn spotbugs:check
+  build:
+    runs-on: ubuntu-latest
+    needs: verify_version
+    steps:
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
 
-    - name: Run tests with Maven and generate JaCoCo report
-      run: mvn test jacoco:report
+  spotless_check:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Run spotless check
+        run: mvn spotless:check
 
-    - name: Upload JaCoCo report
-      uses: actions/upload-artifact@v2
-      with:
-        name: jacoco-report
-        path: target/site/jacoco
+  spotbugs:
+    runs-on: ubuntu-latest
+    needs: spotless_check
+    steps:
+      - name: Run SpotBugs
+        run: mvn spotbugs:check
+
+  test:
+    runs-on: ubuntu-latest
+    needs: spotbugs
+    steps:
+      - name: Run tests with Maven and generate JaCoCo report
+        run: mvn test jacoco:report
+
+  upload_report:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Upload JaCoCo report
+        uses: actions/upload-artifact@v2
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+  docker_login:
+    runs-on: ubuntu-latest
+    needs: upload_report
+    steps:
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+  set_docker_tag:
+    runs-on: ubuntu-latest
+    needs: docker_login
+    steps:
+      - name: Append version to Docker image tag
+        id: append_version
+        run: |
+          echo "Setting Docker image tag with next version: ${{ env.next_version }}"
+          echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
+
+  build_and_push_docker:
+    runs-on: ubuntu-latest
+    needs: set_docker_tag
+    steps:
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.docker_tag }}
+            ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
+          load: false
+          no-cache: false
+          pull: false
