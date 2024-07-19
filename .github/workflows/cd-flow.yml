@@ -93,6 +93,12 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
+      - name: Archive JAR file
+        uses: actions/upload-artifact@v2
+        with:
+          name: gateway-app
+          path: target/*.jar
+
   spotless_check:
     runs-on: ubuntu-latest
     needs: build
@@ -167,6 +173,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Download JAR file
+        uses: actions/download-artifact@v2
+        with:
+          name: gateway-app
+          path: target
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
