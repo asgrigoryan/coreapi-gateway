@@ -36,8 +36,8 @@ jobs:
         echo "Current version: $current_version"
         echo "Next version: $next_version"
         mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
-        git config --global user.email ${{secret.GIT_USERNAME}}
-        git config --global user.name ${{secret.GIT_EMAIL}}
+        git config --global user.email ${{secrets.GIT_USERNAME}}
+        git config --global user.name ${{secrets.GIT_EMAIL}}
         git add pom.xml
         git commit -m "Bump version to $next_version"
         echo "next_version=$next_version" >> $GITHUB_ENV
