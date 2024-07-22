@@ -62,7 +62,6 @@ jobs:
           git commit -m "Bump version to $next_version"
           echo "next_version=$next_version" >> $GITHUB_ENV
           git push origin HEAD:master
-          git config --global GITHUB_TOKEN ${{ secrets.GITHUB_TOKEN }}
           mvn help:evaluate -Dexpression=project.version -q -DforceStdout 
 
   build:
