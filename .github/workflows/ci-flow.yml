@@ -33,6 +33,7 @@ jobs:
 
   update_version:
     runs-on: ubuntu-latest
+    needs: setup_jdk
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
