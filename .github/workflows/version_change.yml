@@ -1,7 +1,6 @@
 
 
-name: Java CI with Maven
-
+name: Project version change
 on:
   workflow_dispatch
 
