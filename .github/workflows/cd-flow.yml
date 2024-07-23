@@ -138,6 +138,12 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Append version to Docker image tag
+        id: append_version
+        run: |
+          echo "Setting Docker image tag with next version: ${{ env.next_version }}"
+          echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
+    
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
@@ -145,7 +151,7 @@ jobs:
           push: true
           tags: |
             ${{ env.docker_tag }}
-            ${{ env.latest_tag }}
+            ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
           load: false
           no-cache: false
-          pull: false
+        pull: false
