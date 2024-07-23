@@ -127,7 +127,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.docker_tag }}
+            # ${{ env.docker_tag }}
             ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
           load: false
           no-cache: false
