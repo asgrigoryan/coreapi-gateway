@@ -144,7 +144,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker buildx build --tag ${{ env.docker_tag }} --file Dockerfile .
+          docker build -t coreapi-gateway:${{ env.docker_tag }} .
 
       - name: Push Docker image
         run: |
