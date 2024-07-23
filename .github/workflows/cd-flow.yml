@@ -8,170 +8,83 @@ on:
   workflow_dispatch:
 
 jobs:
-  checkout:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-  setup_jdk:
-    runs-on: ubuntu-latest
-    needs: checkout
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: maven
-
-  get_version:
-    runs-on: ubuntu-latest
-    needs: setup_jdk
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Get current version from pom.xml
-        run: |
-          echo "Current version:"
-          mvn help:evaluate -Dexpression=project.version -q -DforceStdout
-  increment_version:
-    runs-on: ubuntu-latest
-    needs: get_version
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Increment version in pom.xml
-        run: |
-          current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          next_version=$(echo $current_version | awk -F'[.-]' '{print $1"."$2"."$3+1}')
-          echo "Current version: $current_version"
-          echo "Next version: $next_version"
-          mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
-          git config --global user.email ${{secrets.GIT_EMAIL}}
-          git config --global user.name ${{secrets.GIT_USERNAME}}
-          git add pom.xml
-          git commit -m "Bump version to $next_version"
-          echo "next_version=$next_version" >> $GITHUB_ENV
-  push_version_update:
-    runs-on: ubuntu-latest
-    needs: increment_version
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Push version update
-        run: git push origin HEAD:master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  verify_version:
-    runs-on: ubuntu-latest
-    needs: push_version_update
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Verify updated version in pom.xml
-        run: |
-          mvn help:evaluate -Dexpression=project.version -q -DforceStdout
   build:
+
     runs-on: ubuntu-latest
-    needs: verify_version
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
 
-      - name: Upload JAR file as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: gateway-app
-          path: target/*.jar
+    - name: Get current version from pom.xml
+      id: get_version
+      run: |
+        echo "Current version:"
+        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+    - name: Increment version in pom.xml
+      id: increment_version
+      run: |
+        current_version=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        next_version=$(echo $current_version | awk -F'[.-]' '{print $1"."$2"."$3+1}')
+        echo "Current version: $current_version"
+        echo "Next version: $next_version"
+        mvn versions:set -DnewVersion=$next_version -DgenerateBackupPoms=false
+        git config --global user.email ${{secrets.GIT_USERNAME}}
+        git config --global user.name ${{secrets.GIT_EMAIL}}
+        git add pom.xml
+        git commit -m "Bump version to $next_version"
+        echo "next_version=$next_version" >> $GITHUB_ENV
+    - name: Push version update
+      run: git push origin HEAD:master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  spotless_check:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Verify updated version in pom.xml
+      run: |
+        mvn help:evaluate -Dexpression=project.version -q -DforceStdout
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
 
-      - name: Run spotless check
-        run: mvn spotless:check
+    - name: Run spotless check
+      run: mvn spotless:check
 
-  spotbugs:
-    runs-on: ubuntu-latest
-    needs: spotless_check
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Run SpotBugs
+      run: mvn spotbugs:check
 
-      - name: Run SpotBugs
-        run: mvn spotbugs:check
+    - name: Run tests with Maven and generate JaCoCo report
+      run: mvn test jacoco:report
 
-  test:
-    runs-on: ubuntu-latest
-    needs: spotbugs
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Upload JaCoCo report
+      uses: actions/upload-artifact@v2
+      with:
+        name: jacoco-report
+        path: target/site/jacoco
 
-      - name: Run tests with Maven and generate JaCoCo report
-        run: mvn test jacoco:report
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-  upload_report:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Upload JaCoCo report
-        uses: actions/upload-artifact@v2
-        with:
-          name: jacoco-report
-          path: target/site/jacoco
-
-  docker_login:
-    runs-on: ubuntu-latest
-    needs: upload_report
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-  set_docker_tag:
-    runs-on: ubuntu-latest
-    needs: docker_login
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Append version to Docker image tag
-        run: |
-          echo "Setting Docker image tag with next version: ${{ env.next_version }}"
-          echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
-  build_and_push_docker:
-    runs-on: ubuntu-latest
-    needs: set_docker_tag
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download JAR file
-        uses: actions/download-artifact@v2
-        with:
-          name: gateway-app
-          path: target
+    - name: Append version to Docker image tag
+      id: append_version
+      run: |
+        echo "Setting Docker image tag with next version: ${{ env.next_version }}"
+        echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ env.docker_tag }}
+          ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
+        load: false
+        no-cache: false
+        pull: false
