@@ -129,7 +129,7 @@ jobs:
         context: .
         push: true
         tags: |
-          ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{steps.get_version.outputs.current_version}}
+          ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ steps.get_version.outputs.current_version }}
           ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
         load: false
         no-cache: false
