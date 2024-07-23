@@ -138,3 +138,14 @@ jobs:
         with:
           name: gateway-app
           path: target
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        run: |
+          docker buildx build --tag ${{ env.docker_tag }} --file Dockerfile . 
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.docker_tag }}
