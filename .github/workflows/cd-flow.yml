@@ -133,23 +133,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download JAR file
-        uses: actions/download-artifact@v2
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
-          name: gateway-app
-          path: target
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
+      - name: Append version to Docker image tag
+        id: append_version
+        run: |
+          echo "Setting Docker image tag with next version: ${{ env.next_version }}"
+          echo "docker_tag=${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:${{ env.next_version }}" >> $GITHUB_ENV
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-         context: .
-         push: true
-         tags: |
-           ${{ env.docker_tag }}
-           ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
-         load: false
-         no-cache: false
-         pull: false
+          context: .
+          push: true
+          tags: |
+            ${{ env.docker_tag }}
+            ${{ secrets.DOCKER_USERNAME }}/coreapi-gateway:latest
+          load: false
+          no-cache: false
+          pull: false
